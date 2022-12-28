@@ -1,3 +1,7 @@
 /.dev
 /.idea
 /*.iml
+.vscode
+*/compose/data/*
+*/compose/passwd/*
+*/compose/downloads/*
