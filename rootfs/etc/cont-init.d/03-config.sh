@@ -69,17 +69,17 @@ echo "Setting PHP-FPM configuration..."
 sed -e "s/@MEMORY_LIMIT@/$MEMORY_LIMIT/g" \
   -e "s/@UPLOAD_MAX_SIZE@/$UPLOAD_MAX_SIZE/g" \
   -e "s/@CLEAR_ENV@/$CLEAR_ENV/g" \
-  /tpls/etc/php7/php-fpm.d/www.conf > /etc/php7/php-fpm.d/www.conf
+  /tpls/etc/php81/php-fpm.d/www.conf > /etc/php81/php-fpm.d/www.conf
 
 echo "Setting PHP INI configuration..."
-sed -i "s|memory_limit.*|memory_limit = ${MEMORY_LIMIT}|g" /etc/php7/php.ini
-sed -i "s|;date\.timezone.*|date\.timezone = ${TZ}|g" /etc/php7/php.ini
-sed -i "s|max_file_uploads.*|max_file_uploads = ${MAX_FILE_UPLOADS}|g" /etc/php7/php.ini
+sed -i "s|memory_limit.*|memory_limit = ${MEMORY_LIMIT}|g" /etc/php81/php.ini
+sed -i "s|;date\.timezone.*|date\.timezone = ${TZ}|g" /etc/php81/php.ini
+sed -i "s|max_file_uploads.*|max_file_uploads = ${MAX_FILE_UPLOADS}|g" /etc/php81/php.ini
 
 # OpCache
 echo "Setting OpCache configuration..."
 sed -e "s/@OPCACHE_MEM_SIZE@/$OPCACHE_MEM_SIZE/g" \
-  /tpls/etc/php7/conf.d/opcache.ini > /etc/php7/conf.d/opcache.ini
+  /tpls/etc/php81/conf.d/opcache.ini > /etc/php81/conf.d/opcache.ini
 
 # Nginx
 echo "Setting Nginx configuration..."
@@ -192,26 +192,26 @@ if [ ! -f /data/rtorrent/.rtorrent.rc ]; then
   echo "  Creating default configuration..."
   cp /tpls/.rtorrent.rc /data/rtorrent/.rtorrent.rc
 fi
-chown rtorrent. /data/rtorrent/.rtorrent.rc
+chown rtorrent:rtorrent /data/rtorrent/.rtorrent.rc
 
 # ruTorrent config
 echo "Bootstrapping ruTorrent configuration..."
 cat > /var/www/rutorrent/conf/config.php <<EOL
 <?php
 
-// For snoopy client
-@define('HTTP_USER_AGENT', '${RU_HTTP_USER_AGENT}', true);
-@define('HTTP_TIME_OUT', ${RU_HTTP_TIME_OUT}, true);
-@define('HTTP_USE_GZIP', ${RU_HTTP_USE_GZIP}, true);
+// for snoopy client
+\$httpUserAgent = '${RU_HTTP_USER_AGENT}';
+\$httpTimeOut = ${RU_HTTP_TIME_OUT};
+\$httpUseGzip = ${RU_HTTP_USE_GZIP};
 
-@define('RPC_TIME_OUT', ${RU_RPC_TIME_OUT}, true);
+// for xmlrpc actions
+\$rpcTimeOut = ${RU_RPC_TIME_OUT};
+\$rpcLogCalls = ${RU_LOG_RPC_CALLS};
+\$rpcLogFaults = ${RU_LOG_RPC_FAULTS};
 
-@define('LOG_RPC_CALLS', ${RU_LOG_RPC_CALLS}, true);
-@define('LOG_RPC_FAULTS', ${RU_LOG_RPC_FAULTS}, true);
-
-// For php
-@define('PHP_USE_GZIP', ${RU_PHP_USE_GZIP}, true);
-@define('PHP_GZIP_LEVEL', ${RU_PHP_GZIP_LEVEL}, true);
+// for php
+\$phpUseGzip = ${RU_PHP_USE_GZIP};
+\$phpGzipLevel = ${RU_PHP_GZIP_LEVEL};
 
 // Rand for schedulers start, +0..X seconds
 \$schedule_rand = ${RU_SCHEDULE_RAND};
@@ -234,6 +234,7 @@ cat > /var/www/rutorrent/conf/config.php <<EOL
 \$scgi_port = 0;
 \$scgi_host = "unix:///var/run/rtorrent/scgi.socket";
 \$XMLRPCMountPoint = "/RPC2"; // DO NOT DELETE THIS LINE!!! DO NOT COMMENT THIS LINE!!!
+\$throttleMaxSpeed = 327625*1024; // DO NOT EDIT THIS LINE!!! DO NOT COMMENT THIS LINE!!!
 
 \$pathToExternals = array(
     "php"    => '',
@@ -262,8 +263,11 @@ cat > /var/www/rutorrent/conf/config.php <<EOL
 \$canUseXSendFile = false;
 
 \$locale = '${RU_LOCALE}';
+
+\$enableCSRFCheck = false; // If true then Origin and Referer will be checked
+\$enabledOrigins = array(); // List of enabled domains for CSRF check (only hostnames, without protocols, port etc.). If empty, then will retrieve domain from HTTP_HOST / HTTP_X_FORWARDED_HOST
 EOL
-chown nobody.nogroup "/var/www/rutorrent/conf/config.php"
+chown nobody:nogroup "/var/www/rutorrent/conf/config.php"
 
 # Symlinking ruTorrent config
 ln -sf /data/rutorrent/conf/users /var/www/rutorrent/conf/users
@@ -272,13 +276,13 @@ if [ ! -f /data/rutorrent/conf/access.ini ]; then
   mv /var/www/rutorrent/conf/access.ini /data/rutorrent/conf/access.ini
   ln -sf /data/rutorrent/conf/access.ini /var/www/rutorrent/conf/access.ini
 fi
-chown rtorrent. /data/rutorrent/conf/access.ini
+chown rtorrent:rtorrent /data/rutorrent/conf/access.ini
 if [ ! -f /data/rutorrent/conf/plugins.ini ]; then
   echo "Symlinking ruTorrent plugins.ini file..."
   mv /var/www/rutorrent/conf/plugins.ini /data/rutorrent/conf/plugins.ini
   ln -sf /data/rutorrent/conf/plugins.ini /var/www/rutorrent/conf/plugins.ini
 fi
-chown rtorrent. /data/rutorrent/conf/plugins.ini
+chown rtorrent:rtorrent /data/rutorrent/conf/plugins.ini
 
 # Remove ruTorrent core plugins
 if [ -n "$RU_REMOVE_CORE_PLUGINS" ]; then
@@ -300,15 +304,15 @@ if [ -d "/var/www/rutorrent/plugins/create" ]; then
 \$pathToCreatetorrent = '/usr/local/bin/mktorrent';
 \$recentTrackersMaxCount = 15;
 EOL
-  chown nobody.nogroup "/var/www/rutorrent/plugins/create/conf.php"
+  chown nobody:nogroup "/var/www/rutorrent/plugins/create/conf.php"
 else
   echo "  WARNING: create plugin does not exist"
 fi
 
 echo "Checking ruTorrent custom plugins..."
-plugins=$(ls -l /data/rutorrent/plugins | egrep '^d' | awk '{print $9}')
+plugins=$(ls -l /data/rutorrent/plugins | grep -E '^d' | awk '{print $9}')
 for plugin in ${plugins}; do
-  if [ "${plugin}" == "theme" ]; then
+  if [ "${plugin}" = "theme" ]; then
     echo "  WARNING: theme plugin cannot be overriden"
     continue
   fi
@@ -317,7 +321,7 @@ for plugin in ${plugins}; do
     rm -rf "/var/www/rutorrent/plugins/${plugin}"
   fi
   cp -Rf "/data/rutorrent/plugins/${plugin}" "/var/www/rutorrent/plugins/${plugin}"
-  chown -R nobody.nogroup "/var/www/rutorrent/plugins/${plugin}"
+  chown -R nobody:nogroup "/var/www/rutorrent/plugins/${plugin}"
 done
 
 echo "Checking ruTorrent plugins configuration..."
@@ -337,18 +341,18 @@ for pluginConfFile in /data/rutorrent/plugins-conf/*.php; do
   fi
   echo "  Copying ${pluginName} plugin config..."
   cp -f "${pluginConfFile}" "/var/www/rutorrent/plugins/${pluginName}/conf.php"
-  chown nobody.nogroup "/var/www/rutorrent/plugins/${pluginName}/conf.php"
+  chown nobody:nogroup "/var/www/rutorrent/plugins/${pluginName}/conf.php"
 done
 
 echo "Checking ruTorrent custom themes..."
-themes=$(ls -l /data/rutorrent/themes | egrep '^d' | awk '{print $9}')
+themes=$(ls -l /data/rutorrent/themes | grep -E '^d' | awk '{print $9}')
 for theme in ${themes}; do
   echo "  Copying custom ${theme} theme..."
   if [ -d "/var/www/rutorrent/plugins/theme/themes/${theme}" ]; then
     rm -rf "/var/www/rutorrent/plugins/theme/themes/${theme}"
   fi
   cp -Rf "/data/rutorrent/themes/${theme}" "/var/www/rutorrent/plugins/theme/themes/${theme}"
-  chown -R nobody.nogroup "/var/www/rutorrent/plugins/theme/themes/${theme}"
+  chown -R nobody:nogroup "/var/www/rutorrent/plugins/theme/themes/${theme}"
 done
 
 echo "Setting GeoIP2 databases for geoip2 plugin..."
@@ -364,14 +368,14 @@ else
 fi
 
 echo "Fixing perms..."
-chown rtorrent. \
+chown rtorrent:rtorrent \
   /data/rutorrent/share/users \
   /data/rutorrent/share/torrents \
   /downloads \
   /downloads/complete \
   /downloads/temp \
   "${RU_LOG_FILE}"
-chown -R rtorrent. \
+chown -R rtorrent:rtorrent \
   /data/geoip \
   /data/rtorrent/log \
   /data/rtorrent/.session \
