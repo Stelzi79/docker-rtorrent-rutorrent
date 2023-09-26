@@ -1,7 +1,9 @@
-version: "3.2"
+version: "3.5"
+name: rtorrent
 
 services:
   geoip-updater:
+    container_name: rtorrent-geoip-updater
     image: crazymax/geoip-updater:latest
     volumes:
       - "./data/geoip:/data"
@@ -9,7 +11,8 @@ services:
       - "./geoip-updater.env"
     restart: always
 
-  rtorrent-rutorrent:
+  rtorrent:
+    container_name: rtorrent-web
     image: crazymax/rtorrent-rutorrent:latest
     expose:
       - "${RT_DHT_PORT}/udp"
@@ -45,10 +48,11 @@ services:
     restart: always
 
   rtorrent-logs:
+    container_name: rtorrent-logs
     image: bash
     command: bash -c 'tail -f /log/*.log'
     depends_on:
-      - rtorrent-rutorrent
+      - rtorrent
     volumes:
       - "./data/rtorrent/log:/log"
     restart: always
