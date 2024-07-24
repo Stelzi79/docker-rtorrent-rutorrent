@@ -1,4 +1,4 @@
-name: rtorrent-rutorrent
+name: rtorrent
 
 services:
   geoip-updater:
@@ -14,7 +14,7 @@ services:
 
   rtorrent-rutorrent:
     image: crazymax/rtorrent-rutorrent:latest
-    container_name: rtorrent-rutorrent
+    container_name: rutorrent
     networks:
       - rtorrent-rutorrent
     expose:
