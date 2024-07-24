@@ -1,22 +1,21 @@
-name: rtorrent
-
+name: rutorrent
 services:
-  geoip-updater:
-    image: crazymax/geoip-updater:latest
-    container_name: geoip-updater
+  rt-geoip-updater:
+    image: crazymax/geoip-updater:${version_gu:-latest}
+    container_name: rt-geoip-updater
     networks:
-      - rtorrent-rutorrent
+      - rutorrent
     volumes:
       - "./data/geoip:/data"
     env_file:
       - "./geoip-updater.env"
     restart: always
 
-  rtorrent-rutorrent:
-    image: crazymax/rtorrent-rutorrent:latest
-    container_name: rutorrent
+  rt-rutorrent:
+    image: crazymax/rtorrent-rutorrent:${version_rt:-latest}
+    container_name: rt-rutorrent
     networks:
-      - rtorrent-rutorrent
+      - rtorrent
     expose:
       - "${RT_DHT_PORT}/udp"
       - "${XMLRPC_PORT}"
@@ -50,17 +49,17 @@ services:
         hard: 40000
     restart: always
 
-  rtorrent-logs:
+  rt-logs:
     image: bash
-    container_name: rtorrent-rutorrent-logs
+    container_name: rt-logs
     command: bash -c 'tail -f /log/*.log'
     network_mode: none
     depends_on:
-      - rtorrent-rutorrent
+      - rt-rutorrent
     volumes:
       - "./data/rtorrent/log:/log"
     restart: always
 
 networks:
   rtorrent-rutorrent:
-    name: rtorrent-rutorrent
+    name: rutorrent
