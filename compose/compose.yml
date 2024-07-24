@@ -4,7 +4,7 @@ services:
     image: crazymax/geoip-updater:${version_gu:-latest}
     container_name: rt-geoip-updater
     networks:
-      - rutorrent
+      - rt-rutorrent
     volumes:
       - "./data/geoip:/data"
     env_file:
@@ -15,7 +15,7 @@ services:
     image: crazymax/rtorrent-rutorrent:${version_rt:-latest}
     container_name: rt-rutorrent
     networks:
-      - rtorrent
+      - rt-rutorrent
     expose:
       - "${RT_DHT_PORT}/udp"
       - "${XMLRPC_PORT}"
@@ -61,5 +61,5 @@ services:
     restart: always
 
 networks:
-  rtorrent-rutorrent:
+  rt-rutorrent:
     name: rutorrent
