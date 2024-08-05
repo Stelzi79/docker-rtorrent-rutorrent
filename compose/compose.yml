@@ -19,15 +19,15 @@ services:
     expose:
       - "${RT_DHT_PORT}/udp"
       - "${XMLRPC_PORT}"
-      - "${RUTORRENT_PORT}"
+      - "${port:-9090}"
       - "${WEBDAV_PORT}"
       - "${RT_INC_PORT}"
     ports:
       - target: ${RT_DHT_PORT}
         published: ${RT_DHT_PORT}
         protocol: udp
-      - target: ${RUTORRENT_PORT}
-        published: ${RUTORRENT_PORT}
+      - target: ${port:-9090}
+        published: ${port:-9090}
         protocol: tcp
       - target: ${WEBDAV_PORT}
         published: ${WEBDAV_PORT}
@@ -48,6 +48,14 @@ services:
         soft: 32000
         hard: 40000
     restart: always
+    labels:
+      - homepage.group=Services
+      - homepage.name=ruTorrent
+      - homepage.icon=http://${domain}:${port}/images/apple-touch-icon-120x120.png
+      # - homepage.siteMonitor=http://${domain}:${kestra_port2}/prometheus
+      - homepage.ping=${domain}
+      - homepage.href=http://${domain}:${port}/
+      - homepage.description=ruTorrent is a front-end for the popular Bittorrent client rTorrent
 
   rt-logs:
     image: bash
