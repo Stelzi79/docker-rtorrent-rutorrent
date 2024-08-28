@@ -9,7 +9,7 @@ services:
       - "./data/geoip:/data"
     env_file:
       - "./geoip-updater.env"
-    restart: always
+    restart: ${restart:-unless-stopped}
 
   rt-rutorrent:
     image: crazymax/rtorrent-rutorrent:${version_rt:-latest}
@@ -47,7 +47,7 @@ services:
       nofile:
         soft: 32000
         hard: 40000
-    restart: always
+    restart: ${restart:-unless-stopped}
     labels:
       - homepage.group=Services
       - homepage.name=ruTorrent
@@ -55,8 +55,7 @@ services:
       # - homepage.siteMonitor=http://${domain}:${kestra_port2}/prometheus
       - homepage.ping=${domain}
       - homepage.href=http://${domain}:${port}/
-      - homepage.description=ruTorrent is a front-end for the popular Bittorrent client rTorrent
-
+      - homepage.description=ruTorrent is a popular Bittorrent client
   rt-logs:
     image: bash
     container_name: rt-logs
@@ -66,7 +65,7 @@ services:
       - rt-rutorrent
     volumes:
       - "./data/rtorrent/log:/log"
-    restart: always
+    restart: ${restart:-unless-stopped}
 
 networks:
   rt-rutorrent:
