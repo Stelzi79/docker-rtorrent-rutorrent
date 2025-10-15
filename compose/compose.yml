@@ -51,7 +51,8 @@ services:
     labels:
       - homepage.group=Services
       - homepage.name=ruTorrent
-      - homepage.icon=http://${domain}:${port}/images/apple-touch-icon-120x120.png
+      # - homepage.icon=http://${domain}:${port}/images/favicon-32x32.png
+      - homepage.icon=si-qbittorrent
       # - homepage.siteMonitor=http://${domain}:${kestra_port2}/prometheus
       - homepage.ping=${domain}
       - homepage.href=http://${domain}:${port}/
