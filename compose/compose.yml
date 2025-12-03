@@ -58,7 +58,7 @@ services:
       - homepage.href=http://${domain}:${port}/
       - homepage.description=ruTorrent is a popular Bittorrent client
   rt-logs:
-    image: bash
+    image: bash:${version_bash:-latest}
     container_name: rt-logs
     command: bash -c 'tail -f /log/*.log'
     network_mode: none
